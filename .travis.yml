@@ -1,4 +1,4 @@
 language: go
   go:
-	- tip
-    - 1.9
+  - tip
+  - 1.9
