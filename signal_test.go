@@ -1,7 +1,6 @@
 package signal_test
 
 import (
-	"math"
 	"testing"
 
 	format "fmt"
@@ -46,15 +45,9 @@ func assert(t *testing.T, b bool, msg string) {
 	}
 }
 
-// almost asserts that x is close to y with some precision ε.
-// Mathematically speaking: |(x - y)| <= ε.
-func almost(x, y, ε float64) bool {
-	return math.Abs(x-y) <= ε
-}
-
 func assertAlmost(t *testing.T, x, y, ε float64, msg string) {
 	t.Helper()
-	assert(t, almost(x, y, ε), fmt("Fail: %s. Differs: %.12f != %.12f",
+	assert(t, signal.Almost(x, y, ε), fmt("Fail: %s. Differs: %.12f != %.12f",
 		msg, x, y))
 }
 
@@ -68,6 +61,10 @@ func testdeviation(t *testing.T, s signal.Discrete, expected float64) {
 
 func testvariance(t *testing.T, s signal.Discrete, expected float64) {
 	assertAlmost(t, signal.Variance(s), expected, 1e-9, "variance")
+}
+
+func testhmean(t *testing.T, s signal.Discrete, expected float64) {
+	assertAlmost(t, signal.HMean(signal.Hist(s)), expected, 1e-9, "histogram mean")
 }
 
 func TestMean(t *testing.T) {
@@ -87,5 +84,12 @@ func TestVariance(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		testvariance(t, tc.sig, tc.σ2)
+	}
+}
+
+func TestHMean(t *testing.T) {
+	for _, tc := range testcases {
+		tc := tc
+		testhmean(t, tc.sig, tc.μ)
 	}
 }

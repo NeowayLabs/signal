@@ -11,6 +11,12 @@ type (
 	Continuous func(x float64) float64
 )
 
+// Almost asserts that x is close to y with some precision ε.
+// Mathematically speaking: |(x - y)| <= ε.
+func Almost(x, y, ε float64) bool {
+	return math.Abs(x-y) <= ε
+}
+
 // Mean (μ or average) value of a discrete signal.
 // μ = (1/N) * Σx(i)
 func Mean(sig Discrete) float64 {
