@@ -8,6 +8,8 @@ import (
 	"github.com/NeowayLabs/signal"
 )
 
+const precision = 1e-09
+
 type testcase struct {
 	sig signal.Discrete
 	μ   float64 // mean
@@ -52,19 +54,19 @@ func assertAlmost(t *testing.T, x, y, ε float64, msg string) {
 }
 
 func testmean(t *testing.T, s signal.Discrete, expected float64) {
-	assertAlmost(t, signal.Mean(s), expected, 1e-9, "mean")
+	assertAlmost(t, signal.Mean(s), expected, precision, "mean")
 }
 
 func testdeviation(t *testing.T, s signal.Discrete, expected float64) {
-	assertAlmost(t, signal.StdDeviation(s), expected, 1e-9, "std deviation")
+	assertAlmost(t, signal.StdDeviation(s), expected, precision, "std deviation")
 }
 
 func testvariance(t *testing.T, s signal.Discrete, expected float64) {
-	assertAlmost(t, signal.Variance(s), expected, 1e-9, "variance")
+	assertAlmost(t, signal.Variance(s), expected, precision, "variance")
 }
 
 func testhmean(t *testing.T, s signal.Discrete, expected float64) {
-	assertAlmost(t, signal.HMean(signal.Hist(s)), expected, 1e-9, "histogram mean")
+	assertAlmost(t, signal.HMean(signal.Hist(s)), expected, precision, "histogram mean")
 }
 
 func TestMean(t *testing.T) {
