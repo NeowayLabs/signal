@@ -4,21 +4,30 @@ import (
 	"math"
 )
 
+// Histogram of a discrete signal.
+// It's just a map of the amplitudes/ordinate values to how many times
+// it occurs in the signal.
+// Note that, as Discrete signal  stores floats but isn't sane to use
+// floats as Go map keys, then the keys are stored as uint64 bits from
+// the float64 values.
+// Use Howmany() to ask for the counter of each amplitude value.
 type Histogram map[uint64]uint64
 
+// Hist creates a new histogram from the discrete signal s.
 func Hist(s Discrete) Histogram {
-	H := make(Histogram)
+	h := make(Histogram)
 	for _, v := range s {
 		vi := math.Float64bits(v)
-		if v2, ok := H[vi]; ok {
-			H[vi] = v2 + 1
+		if v2, ok := h[vi]; ok {
+			h[vi] = v2 + 1
 		} else {
-			H[vi] = 1
+			h[vi] = 1
 		}
 	}
-	return H
+	return h
 }
 
+// Howmany returns how many samples has value aproximate by ε.
 func (h Histogram) Howmany(value float64, ε float64) uint64 {
 	// fast path
 	if v2, ok := h[math.Float64bits(value)]; ok {
