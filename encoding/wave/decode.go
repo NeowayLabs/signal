@@ -52,8 +52,14 @@ func (d *Decoder) decode(v reflect.Value, typ reflect.Kind) (Header, error) {
 
 	switch typ {
 	case reflect.Int16:
+		if hdr.RiffChunkFmt.AudioFormat != FormatPCM {
+			return hdr, fmt.Errorf("[]int16 requires a PCM audio")
+		}
 		err = d.decodeInt16(v, hdr.DataBlockSize)
 	case reflect.Float32:
+		if hdr.RiffChunkFmt.AudioFormat != FormatIEEEFloat {
+			return hdr, fmt.Errorf("[]float32 requires a IEEEFloat format")
+		}
 		err = d.decodeFloat32(v, hdr.DataBlockSize)
 	}
 	return hdr, err

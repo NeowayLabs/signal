@@ -34,3 +34,42 @@ const (
 	FormatMULAW      = 0x0007
 	FormatExtensible = 0xFFFE
 )
+
+// NewPCM creates a new PCM wave header
+func NewPCM(nchannels, samplerate, bits int) Header {
+	return Header{
+		RiffHeader: waveRiff(),
+		RiffChunkFmt: RiffChunkFmt{
+			LengthOfHeader: 16,
+			AudioFormat:    FormatPCM,
+			NumChannels:    uint16(nchannels),
+			SampleRate:     uint32(samplerate),
+			BytesPerSec:    uint32(bits/8) * uint32(samplerate),
+			BytesPerBloc:   uint16(bits / 8),
+			BitsPerSample:  uint16(bits),
+		},
+	}
+}
+
+// NewIEEEFloat creates a new WAVE storing IEEE float data
+func NewIEEEFloat(nchannels, samplerate, bits int) Header {
+	return Header{
+		RiffHeader: waveRiff(),
+		RiffChunkFmt: RiffChunkFmt{
+			LengthOfHeader: 16,
+			AudioFormat:    FormatIEEEFloat,
+			NumChannels:    uint16(nchannels),
+			SampleRate:     uint32(samplerate),
+			BytesPerSec:    uint32(bits/8) * uint32(samplerate),
+			BytesPerBloc:   uint16(bits / 8),
+			BitsPerSample:  uint16(bits),
+		},
+	}
+}
+
+func waveRiff() RiffHeader {
+	return RiffHeader{
+		Ident:    [4]byte{'R', 'I', 'F', 'F'},
+		FileType: [4]byte{'W', 'A', 'V', 'E'},
+	}
+}
