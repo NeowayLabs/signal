@@ -1,0 +1,15 @@
+{
+    "RIFFHeader": {
+        "ChunkSize": 66782
+    },
+    "RIFFChunkFmt": {
+        "LengthOfHeader": 18,
+        "AudioFormat": 1,
+        "NumChannels": 1,
+        "SampleRate": 8000,
+        "BytesPerSec": 16000,
+        "BytesPerBloc": 2,
+        "BitsPerSample": 16
+    },
+    "DataBlockSize": 66744
+}
