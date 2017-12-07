@@ -40,13 +40,6 @@ func fixHdr(hdr *wave.Header) {
 	hdr.RiffHeader.FileType[3] = 'E'
 }
 
-func newWaveFloat(data []byte) wave.Header {
-	var wav wave.Header
-	wav.RiffChunkFmt.AudioFormat = wave.FormatIEEEFloat
-	wav.RiffChunkFmt.NumChannels = 1
-	return wav
-}
-
 func testParseWAV(t *testing.T, filename string) {
 	r, err := os.Open(filename)
 	assertNoError(t, err)
