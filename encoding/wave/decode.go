@@ -21,9 +21,9 @@ func NewDecoder(r io.Reader) *Decoder {
 	}
 }
 
-// Decode the WAVE into pcm array and returns the WAVE header
-func (d *Decoder) Decode(pcm interface{}) (Header, error) {
-	v := reflect.ValueOf(pcm)
+// Decode the WAVE into data array and returns the WAVE header
+func (d *Decoder) Decode(data interface{}) (Header, error) {
+	v := reflect.ValueOf(data)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return Header{}, fmt.Errorf("Decode expects a non-nil pointer")
 	}
@@ -89,8 +89,6 @@ func (d *Decoder) decodeInt16(v reflect.Value, datasz uint32) error {
 }
 
 func (d *Decoder) decodeFloat32(v reflect.Value, datasz uint32) error {
-	// TODO: validate using header
-
 	const maxval float32 = 1.0
 	const minval float32 = -1.0
 	const typesz = 4
