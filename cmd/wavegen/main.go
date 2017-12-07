@@ -30,6 +30,8 @@ func main() {
 	enc := wave.NewEncoder(wave.NewPCM(1, int(sampleRate), 16))
 
 	var data []int16
+
+	// TODO(i4k) add option to duration/numberOfSamples
 	for i := 0; i < 10000; i++ {
 		phase += freqRadPerSample
 		sample := float64(volume) * math.Sin(phase)
