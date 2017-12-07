@@ -6,8 +6,7 @@ type (
 		RiffHeader   RiffHeader
 		RiffChunkFmt RiffChunkFmt
 
-		FirstSamplePos uint32 // start position of sample data
-		DataBlockSize  uint32 // size of sample data (PCM data)
+		DataBlockSize uint32 // size of sample data (PCM data)
 	}
 
 	// RiffHeader is the header of RIFF
