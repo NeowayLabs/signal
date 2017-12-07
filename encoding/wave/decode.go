@@ -35,11 +35,13 @@ func (d *Decoder) Decode(pcm interface{}) (Header, error) {
 		case reflect.Int16, reflect.Float32:
 			return d.decode(v, typ)
 		default:
-			return Header{}, fmt.Errorf("unknown slice type: %v", deref.Type().Elem().Kind())
+			return Header{}, fmt.Errorf("unknown slice type: %v",
+				deref.Type().Elem().Kind())
 		}
 	}
 
-	return Header{}, fmt.Errorf("impossible to decode wave into %s. Expect []int16, []float32", v.Kind())
+	return Header{}, fmt.Errorf("impossible to decode wave into %s. "+
+		"Expect *[]int16, *[]float32", v.Kind())
 }
 
 func (d *Decoder) decode(v reflect.Value, typ reflect.Kind) (Header, error) {
