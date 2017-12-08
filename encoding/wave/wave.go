@@ -5,8 +5,8 @@ import "io"
 type (
 	// Header of Wave
 	Header struct {
-		RiffHeader   RiffHeader
-		RiffChunkFmt RiffChunkFmt
+		RiffHeader RiffHeader
+		RiffChunkFmt
 
 		DataBlockSize uint32 // size of sample data (PCM data)
 	}
