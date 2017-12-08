@@ -147,3 +147,75 @@ func assertBytesEqual(t *testing.T, expected []byte, got []byte) {
 		}
 	}
 }
+
+func TestFloatSamplesMustBeNormalized(t *testing.T) {
+
+	type tcase struct {
+		name    string
+		samples []float32
+		success bool
+	}
+
+	tcases := []tcase{
+		tcase{
+			name: "validValues",
+			samples: []float32{
+				-1.0,
+				-0.99,
+				0,
+				0.99,
+				1.0,
+			},
+			success: true,
+		},
+		tcase{
+			name:    "firstBellowRange",
+			samples: []float32{-1.01, -0.99, 0},
+			success: false,
+		},
+		tcase{
+			name:    "secondBellowRange",
+			samples: []float32{-0.99, -1.01, 0},
+			success: false,
+		},
+		tcase{
+			name:    "lastBellowRange",
+			samples: []float32{-1.00, -0.99, -1.01},
+			success: false,
+		},
+		tcase{
+			name:    "firstAboveRange",
+			samples: []float32{1.01, 0.99, 0},
+			success: false,
+		},
+		tcase{
+			name:    "secondAboveRange",
+			samples: []float32{0.99, 1.01, 0},
+			success: false,
+		},
+		tcase{
+			name:    "lastAboveRange",
+			samples: []float32{1.00, 0.99, 1.01},
+			success: false,
+		},
+	}
+
+	for _, tc := range tcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			enc := wave.NewEncoder(wave.NewIEEEFloat(1, 8000, 32))
+			audio, err := enc.EncodeFloat32(tc.samples)
+			assertNoError(t, err)
+
+			dec := wave.NewDecoder(bytes.NewReader(audio))
+
+			out := []float32{}
+			_, err = dec.DecodeFloat32(&out)
+			if tc.success {
+				assertNoError(t, err)
+			} else {
+				assertError(t, err)
+			}
+		})
+	}
+}
