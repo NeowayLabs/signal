@@ -46,7 +46,7 @@ func testParseWAV(t *testing.T, filename string) {
 
 	d := wave.NewDecoder(r)
 	data := make([]int16, 0)
-	hdr, hdrerr := d.Decode(&data)
+	hdr, hdrerr := d.DecodeInt16(&data)
 
 	ext := filepath.Ext(filename)
 	noext := strings.TrimSuffix(filename, ext)
@@ -102,8 +102,8 @@ func TestSignedInt16LittleEndianSamples(t *testing.T) {
 	assertNoError(t, err)
 
 	d := wave.NewDecoder(f)
-	samples := make([]int16, 0)
-	_, err = d.Decode(&samples)
+	samples := []int16{}
+	_, err = d.DecodeInt16(&samples)
 
 	assertNoError(t, err)
 
@@ -122,7 +122,7 @@ func TestFloat32LittleEndianSamples(t *testing.T) {
 	d := wave.NewDecoder(f)
 
 	samples := make([]float32, 0)
-	_, err = d.Decode(&samples)
+	_, err = d.DecodeFloat32(&samples)
 	assertNoError(t, err)
 
 	gotbuf := &bytes.Buffer{}

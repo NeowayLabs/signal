@@ -3,8 +3,6 @@ package wave
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
-	"reflect"
 )
 
 const (
@@ -13,7 +11,8 @@ const (
 
 // Encoder of WAVE audio format
 type Encoder struct {
-	hdr Header
+	hdr       Header           // hdr of output WAV
+	byteOrder binary.ByteOrder // encoder's byte order for data samples
 }
 
 // NewEncoder creates a new encoder for header hdr.
@@ -22,35 +21,9 @@ type Encoder struct {
 // header with only the required fields.
 func NewEncoder(hdr Header) *Encoder {
 	return &Encoder{
-		hdr: hdr,
+		hdr:       hdr,
+		byteOrder: binary.LittleEndian,
 	}
-}
-
-// Encode the audio using data samples. Note that type of
-// data slice is validated against the format of WAVE header.
-func (e *Encoder) Encode(data interface{}) ([]byte, error) {
-	v := reflect.ValueOf(data)
-	switch v.Kind() {
-	case reflect.Slice:
-		// get the underlying type of slice elements
-		switch typ := v.Type().Elem().Kind(); typ {
-		case reflect.Int16, reflect.Float32:
-			return e.encode(v, typ)
-		default:
-			return nil, fmt.Errorf("unknown slice type: %v",
-				v.Type().Elem().Kind())
-		}
-	}
-	return nil, fmt.Errorf("impossible to encode %s", v.Type())
-}
-
-func (e *Encoder) encode(v reflect.Value, typ reflect.Kind) ([]byte, error) {
-	data := v.Interface()
-	if typ == reflect.Int16 {
-		return e.encodePCM(data.([]int16))
-	}
-
-	return e.encodeIEEEFloat(data.([]float32))
 }
 
 func (e *Encoder) writeHeader(buf *bytes.Buffer, datasz uint32) error {
@@ -81,7 +54,7 @@ func (e *Encoder) writeHeader(buf *bytes.Buffer, datasz uint32) error {
 	return lewrite(e.hdr.RiffChunkFmt)
 }
 
-func (e *Encoder) encodePCM(data []int16) ([]byte, error) {
+func (e *Encoder) EncodeInt16(data []int16) ([]byte, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, waveHdrSize))
 
 	lewrite := func(d interface{}) error {
@@ -115,7 +88,7 @@ func (e *Encoder) encodePCM(data []int16) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (e *Encoder) encodeIEEEFloat(data []float32) ([]byte, error) {
+func (e *Encoder) EncodeFloat32(data []float32) ([]byte, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, waveHdrSize))
 	datasz := uint32(4 * len(data))
 

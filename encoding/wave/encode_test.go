@@ -17,7 +17,7 @@ func TestEncoder(t *testing.T) {
 
 	expectedData := make([]int16, 0)
 	d := wave.NewDecoder(f)
-	expectedHdr, err := d.Decode(&expectedData)
+	expectedHdr, err := d.DecodeInt16(&expectedData)
 	assertNoError(t, err)
 
 	enc := wave.NewEncoder(
@@ -28,12 +28,12 @@ func TestEncoder(t *testing.T) {
 	)
 
 	// encode a new audio from expected data
-	audioBytes, err := enc.Encode(expectedData)
+	audioBytes, err := enc.EncodeInt16(expectedData)
 	assertNoError(t, err)
 
 	d = wave.NewDecoder(bytes.NewBuffer(audioBytes))
 	gotData := make([]int16, 0)
-	_, err = d.Decode(&gotData)
+	_, err = d.DecodeInt16(&gotData)
 	assertNoError(t, err)
 
 	if !reflect.DeepEqual(gotData, expectedData) {

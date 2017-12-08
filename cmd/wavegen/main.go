@@ -37,7 +37,7 @@ func main() {
 		sample := float64(volume) * math.Sin(phase)
 		data = append(data, int16(sample))
 	}
-	audioBytes, err := enc.Encode(data)
+	audioBytes, err := enc.EncodeInt16(data)
 	if err != nil {
 		panic(err)
 	}

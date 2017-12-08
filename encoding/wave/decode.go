@@ -4,119 +4,101 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"reflect"
+	"unsafe"
 )
 
 type (
 	// Decoder is a WAVE decoder
 	Decoder struct {
-		input io.Reader
+		input     io.Reader        // input stream
+		byteOrder binary.ByteOrder // decoder's byte order for data samples
 	}
 )
 
-// NewDecoder creates a new WAVE decoder
+// NewDecoder creates a new WAVE decoder using Little-Endian as default
+// byte order of data samples (use d.BigEndian() to opt for big-endian).
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{
-		input: r,
+		input:     r,
+		byteOrder: binary.LittleEndian,
 	}
 }
 
-// Decode the WAVE into data array and returns the WAVE header
-func (d *Decoder) Decode(data interface{}) (Header, error) {
-	v := reflect.ValueOf(data)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
-		return Header{}, fmt.Errorf("Decode expects a non-nil pointer")
-	}
-	deref := v.Elem()
-	switch deref.Kind() {
-	case reflect.Slice:
-		// get the underlying type of slice elements
-		switch typ := deref.Type().Elem().Kind(); typ {
-		case reflect.Int16, reflect.Float32:
-			return d.decode(v, typ)
-		default:
-			return Header{}, fmt.Errorf("unknown slice type: %v",
-				deref.Type().Elem().Kind())
-		}
-	}
-
-	return Header{}, fmt.Errorf("impossible to decode wave into %s. "+
-		"Expect *[]int16, *[]float32", v.Kind())
+// LittleEndian configures to decode data chunk using little-endian.
+func (d *Decoder) LittleEndian() {
+	d.byteOrder = binary.LittleEndian
 }
 
-func (d *Decoder) decode(v reflect.Value, typ reflect.Kind) (Header, error) {
-	hdr, err := d.parseHeader()
+// BigEndian configures to decode data chunk using big-endian.
+func (d *Decoder) BigEndian() {
+	d.byteOrder = binary.BigEndian
+}
+
+// DecodeInt16 decodes the WAV buffer, returning the wave header and
+// filling data with the audio samples.
+// In case the data chunk is corrupted or there's some other error
+// parsing the samples, the parsed header is returned to inspection also
+// (useful to check corrupted WAV files).
+func (d *Decoder) DecodeInt16(data *[]int16) (hdr Header, err error) {
+	hdr, err = d.parseHeader()
 	if err != nil {
 		return Header{}, err
 	}
 
-	switch typ {
-	case reflect.Int16:
-		if hdr.RiffChunkFmt.AudioFormat != FormatPCM {
-			return hdr, fmt.Errorf("[]int16 requires a PCM audio")
-		}
-		err = d.decodeInt16(v, hdr.DataBlockSize)
-	case reflect.Float32:
-		if hdr.RiffChunkFmt.AudioFormat != FormatIEEEFloat {
-			return hdr, fmt.Errorf("[]float32 requires a IEEEFloat format")
-		}
-		err = d.decodeFloat32(v, hdr.DataBlockSize)
-	}
-	return hdr, err
-}
-
-func (d *Decoder) decodeInt16(v reflect.Value, datasz uint32) error {
-	dataptr := v.Interface().(*[]int16)
-
-	const typesize = 2
 	var bytesRead uint32
-	for bytesRead < datasz {
-		var buf [typesize]byte
-		n, err := d.input.Read(buf[:])
+	for bytesRead < hdr.DataBlockSize {
+		var sample int16
+		err := binary.Read(d.input, d.byteOrder, &sample)
 		if err != nil {
-			return err
+			return hdr, fmt.Errorf("decoding int16: bytes read[%d], total[%d]: %s",
+				bytesRead,
+				hdr.DataBlockSize,
+				err)
 		}
-		if n != typesize {
-			return fmt.Errorf("corrupted audio")
-		}
-
-		sample := int16(binary.LittleEndian.Uint16(buf[:]))
-		*dataptr = append(*dataptr, sample)
-		bytesRead += typesize
+		*data = append(*data, sample)
+		bytesRead += uint32(unsafe.Sizeof(sample))
 	}
 
-	return nil
+	return hdr, nil
 }
 
-func (d *Decoder) decodeFloat32(v reflect.Value, datasz uint32) error {
+// DecodeFloat32 decodes the WAV buffer, returning the wave header and
+// filling data with the audio samples.
+// In case the data chunk is corrupted or there's some other error
+// parsing the samples, the parsed header is returned to inspection also
+// (useful to check corrupted WAV files).
+func (d *Decoder) DecodeFloat32(data *[]float32) (hdr Header, err error) {
+	hdr, err = d.parseHeader()
+	if err != nil {
+		return Header{}, err
+	}
+
 	const maxval float32 = 1.0
 	const minval float32 = -1.0
-	const typesz = 4
 
-	dataptr := v.Interface().(*[]float32)
 	var bytesRead uint32
-	for bytesRead < datasz {
+	for bytesRead < hdr.DataBlockSize {
 		var sample float32
-		err := binary.Read(d.input, binary.LittleEndian, &sample)
+		err := binary.Read(d.input, d.byteOrder, &sample)
 		if err != nil {
-			return fmt.Errorf("decoding floats: bytes read[%d], total[%d]: %s",
+			return hdr, fmt.Errorf("decoding float32: bytes read[%d], total[%d]: %s",
 				bytesRead,
-				datasz,
+				hdr.DataBlockSize,
 				err)
 		}
 
 		if sample < minval || sample > maxval {
-			return fmt.Errorf(
+			return hdr, fmt.Errorf(
 				"sample[%f] is outside the valid value range for a PCM float",
 				sample,
 			)
 		}
 
-		*dataptr = append(*dataptr, sample)
-		bytesRead += typesz
+		*data = append(*data, sample)
+		bytesRead += uint32(unsafe.Sizeof(sample))
 	}
 
-	return nil
+	return hdr, nil
 }
 
 func (d *Decoder) parseRIFFHdr() (RiffHeader, error) {
