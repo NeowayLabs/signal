@@ -1,5 +1,7 @@
 package wave
 
+import "io"
+
 type (
 	// Header of Wave
 	Header struct {
@@ -72,4 +74,10 @@ func waveRiff() RiffHeader {
 		Ident:    [4]byte{'R', 'I', 'F', 'F'},
 		FileType: [4]byte{'W', 'A', 'V', 'E'},
 	}
+}
+
+// DecodeHeader decodes just the header of WAV input.
+func DecodeHeader(r io.Reader) (Header, error) {
+	d := NewDecoder(r)
+	return d.DecodeHeader()
 }

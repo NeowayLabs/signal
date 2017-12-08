@@ -40,7 +40,7 @@ func (d *Decoder) BigEndian() {
 // parsing the samples, the parsed header is returned to inspection also
 // (useful to check corrupted WAV files).
 func (d *Decoder) DecodeInt16(data *[]int16) (hdr Header, err error) {
-	hdr, err = d.parseHeader()
+	hdr, err = d.DecodeHeader()
 	if err != nil {
 		return Header{}, err
 	}
@@ -68,7 +68,7 @@ func (d *Decoder) DecodeInt16(data *[]int16) (hdr Header, err error) {
 // parsing the samples, the parsed header is returned to inspection also
 // (useful to check corrupted WAV files).
 func (d *Decoder) DecodeFloat32(data *[]float32) (hdr Header, err error) {
-	hdr, err = d.parseHeader()
+	hdr, err = d.DecodeHeader()
 	if err != nil {
 		return Header{}, err
 	}
@@ -113,7 +113,8 @@ func (d *Decoder) parseRIFFHdr() (RiffHeader, error) {
 	return hdr, nil
 }
 
-func (d *Decoder) parseHeader() (Header, error) {
+// DecodeHeader decodes just the header of the WAV.
+func (d *Decoder) DecodeHeader() (Header, error) {
 	riffhdr, err := d.parseRIFFHdr()
 	if err != nil {
 		return Header{}, err
