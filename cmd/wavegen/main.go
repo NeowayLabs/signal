@@ -12,6 +12,7 @@ var (
 	filename   string
 	sampleRate uint
 	volume     uint
+	nsamples   uint
 	frequency  float64
 )
 
@@ -20,6 +21,7 @@ func init() {
 	flag.UintVar(&sampleRate, "samplerate", 8000,
 		"The sample rate. Eg.: 8000, 44100, 48000, 96000, etc")
 	flag.UintVar(&volume, "volume", 28000, "volume range from 0 to 32767")
+	flag.UintVar(&nsamples, "nsamples", 1000, "Number of samples to generate")
 	flag.Float64Var(&frequency, "frequency", 440.0, "sine wave frequency")
 }
 
@@ -31,8 +33,7 @@ func main() {
 
 	var data []int16
 
-	// TODO(i4k) add option to duration/numberOfSamples
-	for i := 0; i < 10000; i++ {
+	for i := uint(0); i < nsamples; i++ {
 		phase += freqRadPerSample
 		sample := float64(volume) * math.Sin(phase)
 		data = append(data, int16(sample))
