@@ -129,8 +129,8 @@ func (d *Decoder) DecodeHeader() (Header, error) {
 		return Header{}, fmt.Errorf("parsing fmt chunk: %s", err)
 	}
 
-	if string(chunk[:]) != "fmt " {
-		return Header{}, fmt.Errorf("Unexpected chunk type: %s", string(chunk[:]))
+	if ckName := string(chunk[:]); ckName != "fmt " {
+		return Header{}, fmt.Errorf("Unexpected chunk type: %s", ckName)
 	}
 
 	err = binary.Read(d.input, binary.LittleEndian, &chunkFmt)
